@@ -1,0 +1,92 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+    property testray.main.component.name = "Forms";
+
+    setUp {
+        TestCase.setUpPortalInstance();
+        
+        User.firstLoginPG();
+        
+        Navigator.openURL();
+    }
+
+    tearDown {
+        User.logoutAndLoginPG(
+            userLoginEmailAddress = "test@liferay.com",
+            userLoginFullName = "Test Test");
+    }
+
+    	@description = "LPS-116866 - Verify the Submit Button Label can be translated to multiple languages"
+	@priority = 4
+	test SubmitButtonLabelCanBeTranslated {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+
+		
+		FormsAdmin.addForm();
+		Form.editName(formName = "Form Lang");
+		Form.addTextField(fieldPositionNumber = 0);
+		Form.editFieldLabelMetal(fieldValue = "Full Name");
+		Form.closeSidebar();
+		Form.gotoAddField(
+			fieldPositionNumber = 1,
+			fieldType = "Numeric");
+		Form.editFieldLabelMetal(fieldValue = "Age");
+		Form.addTranslation(localizedLanguage = "Portuguese (Brazil)");
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Full Name",
+			label = "Nome Completo");
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Age",
+			label = "Idade");
+		Form.save();
+		
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Full Name");
+
+		FormViewBuilder.editText(
+			fieldName = "Full Name",
+			fieldValue = "Carlos");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Age");
+
+		FormViewBuilder.editText(
+			fieldName = "Age",
+			fieldValue = "28");
+		FormPortlet.submit();
+		
+		Form.submitAgain();
+
+		FormPortlet.changeLocale(locale = "português-Brasil");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Nome Completo");
+
+		FormViewBuilder.editText(
+			fieldName = "Nome Completo",
+			fieldValue = "Carlos");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Idade");
+
+		FormViewBuilder.editText(
+			fieldName = "Idade",
+			fieldValue = "28");
+		FormPortlet.submit();
+
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "http://localhost:8080",
+			urlAppend = "home");
+			
+		ProductMenu.gotoPortlet(
+            category = "Content & Data",
+            portlet = "Forms");
+		
+		FormsAdminNavigator.gotoViewEntries();
+
+    }
+
+}
